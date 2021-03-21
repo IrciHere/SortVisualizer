@@ -17,9 +17,10 @@ namespace SortVisualizer
     {
         private SortBlocks sortBlocks;
         private int _blockWidth, _sortSpeed;
-        private int _positionUsed1 = -1, _positionUsed2 = -1;
+        private int _positionUsed1 = -1, _positionUsed2 = -1, _positionUsed3 = -1;
         private List<Canvas> canvasList;
         private List<int> valuesList;
+        private bool isResetButtonOn = false;
 
         public MainWindow()
         {
@@ -72,36 +73,55 @@ namespace SortVisualizer
         //Starts sorting the list, with a visualisation
         private void StartButton_OnClick(object sender, RoutedEventArgs e)
         {
-            startButton.IsEnabled = false;
-            speedSlider.IsEnabled = false;
-            sortSelection.IsEnabled = false;
-            _sortSpeed = 100 - (10 * Convert.ToInt32(speedSlider.Value));
-            _sortSpeed = (_sortSpeed > 0) ? _sortSpeed : 1;
-
-            switch (sortSelection.Text)
+            if (isResetButtonOn)
             {
-                case "Selection Sort":
-                    new Thread(SelectionSort).Start();
-                    break;
-                case "Bubble Sort":
-                    new Thread(BubbleSort).Start();
-                    break;
-                case "Insertion Sort":
-                    new Thread(InsertionSort).Start();
-                    break;
-                case "Quick Sort":
-                    new Thread(QuickSort).Start();
-                    break;
-                case "Merge Sort":
-                    new Thread(MergeSort).Start();
-                    break;
-                default:
-                    MessageBox.Show("Pick a sort algorithm");
-                    startButton.IsEnabled = true;
-                    speedSlider.IsEnabled = true;
-                    sortSelection.IsEnabled = true;
-                    break;
+                isResetButtonOn = false;
+                startButton.Content = "START";
+                speedSlider.IsEnabled = true;
+                sortSelection.IsEnabled = true;
+
+                generateButton.IsEnabled = true;
+                objectsAmount.IsEnabled = true;
+                startButton.IsEnabled = false;
+
+                canvasList.Clear();
+                valuesList.Clear();
+                drawingSpace.Children.Clear();
             }
+            else
+            {
+                speedSlider.IsEnabled = false;
+                sortSelection.IsEnabled = false;
+                _sortSpeed = 100 - (10 * Convert.ToInt32(speedSlider.Value));
+                _sortSpeed = (_sortSpeed > 0) ? _sortSpeed : 1;
+
+                switch (sortSelection.Text)
+                {
+                    case "Selection Sort":
+                        new Thread(SelectionSort).Start();
+                        break;
+                    case "Bubble Sort":
+                        new Thread(BubbleSort).Start();
+                        break;
+                    case "Insertion Sort":
+                        new Thread(InsertionSort).Start();
+                        break;
+                    case "Quick Sort":
+                        new Thread(QuickSort).Start();
+                        break;
+                    case "Merge Sort":
+                        new Thread(MergeSort).Start();
+                        break;
+                    default:
+                        MessageBox.Show("Pick a sort algorithm");
+                        startButton.IsEnabled = true;
+                        speedSlider.IsEnabled = true;
+                        sortSelection.IsEnabled = true;
+                        break;
+                }
+                isResetButtonOn = true;
+                startButton.IsEnabled = false;
+            }     
         }
 
         #endregion
@@ -148,6 +168,8 @@ namespace SortVisualizer
                     canvasList[_positionUsed1].Background = Brushes.DarkCyan;
                 if (_positionUsed2 != -1)
                     canvasList[_positionUsed2].Background = Brushes.DarkCyan;
+                if (_positionUsed3 != -1)
+                    canvasList[_positionUsed3].Background = Brushes.Red;
             });
         }
 
@@ -193,6 +215,12 @@ namespace SortVisualizer
             _positionUsed1 = -1;
             _positionUsed2 = -1;
             Visualize(valuesList);
+            Application.Current.Dispatcher.Invoke((Action)delegate
+            {
+                startButton.Content = "RESET";
+                startButton.IsEnabled = true;
+            });
+            
         }
 
 
@@ -218,7 +246,12 @@ namespace SortVisualizer
             }
             _positionUsed1 = -1;
             _positionUsed2 = -1;
-            Visualize(valuesList); 
+            Visualize(valuesList);
+            Application.Current.Dispatcher.Invoke((Action)delegate
+            {
+                startButton.Content = "RESET";
+                startButton.IsEnabled = true;
+            });
         }
 
 
@@ -227,6 +260,11 @@ namespace SortVisualizer
         {
             MergeSortHelper(0, valuesList.Count - 1);
             Visualize(valuesList);
+            Application.Current.Dispatcher.Invoke((Action)delegate
+            {
+                startButton.Content = "RESET";
+                startButton.IsEnabled = true;
+            });
         }
 
         private void MergeSortHelper(int left, int right)
@@ -302,7 +340,13 @@ namespace SortVisualizer
             QuickSortHelper(0, valuesList.Count - 1);
             _positionUsed1 = -1;
             _positionUsed2 = -1;
+            _positionUsed3 = -1;
             Visualize(valuesList);
+            Application.Current.Dispatcher.Invoke((Action)delegate
+            {
+                startButton.Content = "RESET";
+                startButton.IsEnabled = true;
+            });
         }
 
         private void QuickSortHelper(int low, int high)
@@ -320,6 +364,8 @@ namespace SortVisualizer
         {
             Visualize(valuesList);
             int pivot = valuesList[high];
+            _positionUsed3 = high;
+
             int i = low - 1;
 
             for (int j = low; j < high; j++)
@@ -366,6 +412,11 @@ namespace SortVisualizer
 
             _positionUsed1 = -1;
             Visualize(valuesList);
+            Application.Current.Dispatcher.Invoke((Action)delegate
+            {
+                startButton.Content = "RESET";
+                startButton.IsEnabled = true;
+            });
         }
         #endregion
     }
